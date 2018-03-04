@@ -135,6 +135,7 @@ FLAGS += ' -msse';
 FLAGS += ' -msse2';
 FLAGS += ' -msse3';
 FLAGS += ' -mssse3';
+FLAGS += ' -s WASM=1';
 
 
 
