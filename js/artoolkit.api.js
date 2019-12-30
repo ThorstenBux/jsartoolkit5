@@ -616,7 +616,12 @@
 	 * @return	{Float64Array} The dst array.
 	 */
     ARController.prototype.getTransMatSquareCont = function (markerUID, markerWidth, previousMarkerTransform, dst) {
+      try {
         this.marker_transform_mat.set(previousMarkerTransform);
+      } catch (e) {
+        // if the above failes that means that we had a memory growth. In that case reload the buffers
+        this._initializeMemoryPointers()
+      }
         artoolkit.getTransMatSquareCont(this.id, markerUID, markerWidth);
         dst.set(this.marker_transform_mat);
         return dst;
@@ -1228,6 +1233,15 @@
 
     // private methods
 
+    ARController.prototype._initializeMemoryPointers = function () {
+      // Initialize memory pointers
+      var params = artoolkit.frameMalloc;
+      this.dataHeap = new Uint8Array(Module.HEAPU8.buffer, this.framepointer, this.framesize);
+      this.videoLuma = new Uint8Array(Module.HEAPU8.buffer, this.videoLumaPointer, this.framesize / 4);
+      this.camera_mat = new Float64Array(Module.HEAPU8.buffer, params.camera, 16);
+      this.marker_transform_mat = new Float64Array(Module.HEAPU8.buffer, params.transform, 12);
+    }
+
     ARController.prototype._initialize = function () {
         this.id = artoolkit.setup(this.width, this.height, this.cameraParam.id);
 
@@ -1238,11 +1252,7 @@
         this.framesize = params.framesize;
         this.videoLumaPointer = params.videoLumaPointer;
 
-        this.dataHeap = new Uint8Array(Module.HEAPU8.buffer, this.framepointer, this.framesize);
-        this.videoLuma = new Uint8Array(Module.HEAPU8.buffer, this.videoLumaPointer, this.framesize / 4);
-
-        this.camera_mat = new Float64Array(Module.HEAPU8.buffer, params.camera, 16);
-        this.marker_transform_mat = new Float64Array(Module.HEAPU8.buffer, params.transform, 12);
+        this._initializeMemoryPointers()
 
         this.setProjectionNearPlane(0.1)
         this.setProjectionFarPlane(1000);
@@ -1301,7 +1311,13 @@
         }
 
         if (this.dataHeap) {
-            this.dataHeap.set(data);
+            try {
+              this.dataHeap.set(data);
+            } catch(e) {
+              // if the above failes that means that we had a memory growth. In that case reload the buffers
+              this._initializeMemoryPointers();
+              this.dataHeap.set(data);
+            }
             return true;
         }
         return false;
