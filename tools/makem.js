@@ -72,7 +72,7 @@ let arSources, ar_sources;
 if (platform === 'win32') {
 	var glob = require("glob");
 function match(pattern) {
-    var r = glob.sync('emscripten/artoolkit5/lib/SRC/' + pattern);
+    var r = glob.sync(ARTOOLKIT5_ROOT + '/lib/SRC/' + pattern);
     return r;
 }
 function matchAll(patterns, prefix="") {
@@ -163,11 +163,14 @@ if (HAVE_NFT) DEFINES += ' -D HAVE_NFT ';
 var FLAGS = '' + OPTIMIZE_FLAGS;
 FLAGS += ' -Wno-warn-absolute-paths ';
 FLAGS += ' -s TOTAL_MEMORY=' + MEM + ' ';
-FLAGS += ' -s USE_ZLIB=1';
+FLAGS += ' -s USE_ZLIB=1 ';
 //FLAGS += ' -s USE_LIBJPEG';
 FLAGS += ' --memory-init-file 0 '; // for memless file
 // FLAGS += ' -s BINARYEN_TRAP_MODE=clamp'
 
+var FLAGS_WASM = ' -s BINARYEN_TRAP_MODE=clamp ';
+FLAGS += ' -s ALLOW_MEMORY_GROWTH=1 ';
+// FLAGS_WASM += ' -s WASM_OBJECT_FILES=0 --llvm-lto 1 ';  //Link time optimization
 var PRE_FLAGS = ' --pre-js ' + path.resolve(__dirname, '../js/artoolkit.api.js') +' ';
 
 FLAGS += ' --bind ';
@@ -178,7 +181,7 @@ var DEBUG_FLAGS = ' -g ';
 DEBUG_FLAGS += ' -s ASSERTIONS=1 '
 DEBUG_FLAGS += ' --profiling '
 // DEBUG_FLAGS += ' -s EMTERPRETIFY_ADVISE=1 '
-DEBUG_FLAGS += ' -s ALLOW_MEMORY_GROWTH=1';
+// DEBUG_FLAGS += ' -s ALLOW_MEMORY_GROWTH=1';
 DEBUG_FLAGS += '  -s DEMANGLE_SUPPORT=1 ';
 
 var INCLUDES = [
@@ -239,7 +242,7 @@ var compile_combine_min = format(EMCC + ' ' + INCLUDES + ' '
 
 var compile_wasm = format(EMCC + ' ' + INCLUDES + ' '
     + ALL_BC + MAIN_SOURCES
-    + FLAGS + DEFINES + PRE_FLAGS + ' -o {OUTPUT_PATH}{BUILD_FILE} ',
+    + FLAGS + FLAGS_WASM + DEFINES + PRE_FLAGS + ' -o {OUTPUT_PATH}{BUILD_FILE} ',
     OUTPUT_PATH, OUTPUT_PATH, BUILD_WASM_FILE);
 
 var compile_all = format(EMCC + ' ' + INCLUDES + ' '
