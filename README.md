@@ -36,46 +36,45 @@ window.addEventListener('artoolkit-loaded', () => {
 ```
 See examples/simple_image_wasm.html for details.
 
-## Clone the repository
+# Build Instructions
 
-1. Clone this repository
-2. Clone ARToolKit5 project to get the latest source files. From within jsartoolkit5 directory do `git submodule update --init`. If you already cloned ARToolKit5 to a different directory you can:
-  - create a link in the `jsartoolkit5/emscripten/` directory that points to ARToolKit5 (`jsartoolkit5/emscripten/artoolkit5`) (Linux and macOS only)
-  - or, set the `ARTOOLKIT5_ROOT` environment variable to point to your ARToolKit5 clone
-  - or, change the `tools/makem.js` file to point to your artoolkit5 clone (line 62, 83, 107, 140)
-
-## Build Instructions
-
-### Build using Docker
+## Build using Docker
 1. Install Docker (if you havn't already) [Docker](https://www.docker.com/) -> Get Docker
 3. From inside jsartoolkit5 directory run `docker run -dit --name emscripten -v $(pwd):/src trzeci/emscripten-slim:sdk-tag-1.37.34-64bit bash`
 4. `docker exec emscripten npm run build`
 
 
-### Build with manual emscripten setup
+## Build with manual emscripten setup
 
-1. Install build tools
+### Install build tools
   1. Install node.js (https://nodejs.org/en/)
   2. Install python2 (https://www.python.org/downloads/)
   3. Install emscripten (https://emscripten.org/docs/getting_started/downloads.html#download-and-install)
-     We used emscripten version **1.38.44-fastcomp**
+      - We used emscripten version **1.38.44-fastcomp** | (1.39.5-fastcomp)
+      - emscripten `upstream` might work too but you need to compile libJPEG manually as the one described below is compiled with `fastcomp`
 
-jsartoolkit5 aim is to create a Javascript version of artoolkit5. First, you need the artoolkit5 repository on your machine:
+
+### Clone the repository
+
+1. Clone this repository
 2. Clone ARToolKit5 project to get the latest source files. From within jsartoolkit5 directory do `git submodule update --init`. If you already cloned ARToolKit5 to a different directory you can:
-  - create a link in the `jsartoolkit5/emscripten/` directory that points to ARToolKit5 (`jsartoolkit5/emscripten/artoolkit5`)
+  - create a link in the `jsartoolkit5/emscripten/` directory that points to ARToolKit5 (`jsartoolkit5/emscripten/artoolkit5`) (Linux and macOS only)
   - or, set the `ARTOOLKIT5_ROOT` environment variable to point to your ARToolKit5 clone
-  - or, change the `tools/makem.js` file to point to your artoolkit5 clone (line 62, 83, 107, 140)
+  - or, change the `tools/makem.js` file to point to your artoolkit5 clone (line 20)
+jsartoolkit5's aim is to create a JavaScript version of artoolkit5. First, you need the artoolkit5 repository on your machine:
 
-3. Copy libjpeg-6b to emscripten/libjpeg
+### LibJPEG
+For NFT support we need libJPEG to build jsartoolkit5. To get libJPEG do the following
+1. Git clone `git clone git@github.com:kalwalt/libjpeg-for-jsartoolkit5.git`
+2. Follow the build instructions in the Readme.md of `libjpeg-for-jsartoolkit5.git`
+3. Copy libjpeg-6b to emscripten/libjpeg/lib
   - or, set the `LIBJPEG_ROOT` environment variable to point to your libjpeg source directory
 
-  You can use the following version (tested recently) of libjpeg: (https://github.com/kalwalt/libjpeg-for-jsartoolkit5)
-
-4. Set the `LIBJPEG_ROOT` variable - if you have not done it before - to the local path of your libjpeg (which you have cloned in the previous step)
+** Shortcut **
+If you are using emscripten `1.38.44-fastcomp` the prebuild library inside `lib` of (https://github.com/kalwalt/libjpeg-for-jsartoolkit5) might work for you. (It might even work for all `fastcomp` but it is **not** working for `upstream`)
 
 5. Building
   1. Make sure `EMSCRIPTEN` env variable is set (e.g. `EMSCRIPTEN=/usr/lib/emsdk_portable/emscripten/master/ node tools/makem.js`
-  2. Rename the `ARTOOLKIT5_ROOT/include/AR/config.h.in` file to `config.h`
   3. Run `npm install`
   4. Run `npm run build`
 
@@ -84,7 +83,7 @@ Troubleshootings:
 
 During development, you can run ```npm run watch```, it will rebuild the library everytime you change ```./js/``` directory.
 
-6. The built ASM.js files are in `/build`. There's a build with debug symbols in `artoolkit.debug.js` and the optimized build with bundled JS API in `artoolkit.min.js`.
+6. The built artefacts files are in `/build`. There's a build with debug symbols in `artoolkit.debug.js` and the optimized build with bundled JS API in `artoolkit.min.js` and a wasm version `artoolkit_wasm.wasm`
 
 # ARToolKit JS API
 
